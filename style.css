@@ -1,0 +1,304 @@
+/* RAFA_SYSTEM.css - MASTER STYLE 2026 
+    User: La Ode Rafael Astiani (Eric)
+    Theme: Modern Terminal Hybrid (Optimized for Information Systems)
+*/
+
+/* --- 1. SETTING DASAR & VARIABEL --- */
+:root {
+    --bg-color: #0d1117; 
+    --text-color: #c9d1d9;
+    --main-accent: #00ff41; /* Hijau Terminal */
+    --secondary-accent: #58a6ff; /* Biru Modern */
+    --border-color: #30363d;
+    --card-bg: #161b22;
+    --header-bg: rgba(13, 17, 23, 0.95);
+    --font-main: 'Courier New', Courier, monospace;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* --- 2. HEADER & NAVIGATION --- */
+header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 1000;
+    padding: 15px 0;
+    backdrop-filter: blur(10px);
+}
+
+.navbar {
+    width: 95%;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    color: var(--main-accent);
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.logo::before { content: "> "; }
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 25px;
+}
+
+.nav-links a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: 0.3s;
+}
+
+.nav-links a:hover {
+    color: var(--main-accent);
+    text-shadow: 0 0 8px var(--main-accent);
+}
+
+/* --- 3. LAYOUT UTAMA (FIXED & SCROLLABLE) --- */
+.app-container { 
+    display: flex !important; 
+    max-width: 1400px; 
+    margin: 90px auto 20px !important; 
+    gap: 30px !important; 
+    padding: 0 20px !important;
+    justify-content: center !important;
+    align-items: flex-start;
+    /* Tambahkan ini agar kontainer punya konteks tumpukan */
+    position: relative;
+    z-index: 1;
+}
+
+/* FIX: Sidebar kini memiliki tinggi tetap (height) dan scroll mandiri (overflow).
+   Penting untuk UI/UX Information Systems yang bersih.
+*/
+.sidebar-left, .sidebar-right { 
+    flex: 0 0 280px !important; 
+    position: sticky !important; 
+    top: 90px !important; 
+    height: calc(100vh - 110px) !important; 
+    overflow-y: auto !important; 
+    overflow-x: hidden !important;
+    padding-bottom: 20px;
+}
+
+.main-content { 
+    flex: 1 !important; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 25px; 
+    margin: 0 !important;
+    
+    /* FIX: Tambahkan 2 baris ini agar tidak tembus ke header */
+    position: relative; /* Wajib agar z-index berfungsi */
+    z-index: 10;        /* Nilai ini harus lebih rendah dari z-index header (1000) */
+}
+
+/* --- 4. CUSTOM SCROLLBAR (Hacker Aesthetic) --- */
+.sidebar-left::-webkit-scrollbar,
+.sidebar-right::-webkit-scrollbar {
+    width: 4px; /* Sangat tipis agar tetap minimalis */
+}
+
+.sidebar-left::-webkit-scrollbar-track,
+.sidebar-right::-webkit-scrollbar-track {
+    background: rgba(48, 54, 61, 0.2); 
+}
+
+.sidebar-left::-webkit-scrollbar-thumb,
+.sidebar-right::-webkit-scrollbar-thumb {
+    background: var(--main-accent); 
+    border-radius: 10px;
+}
+
+section { 
+    padding: 30px; 
+    border: 1px solid var(--border-color); 
+    background: var(--card-bg); 
+    border-radius: 8px; 
+    opacity: 0; 
+    transform: translateY(20px); 
+    transition: 0.8s all ease; 
+    
+    /* TAMBAHKAN INI BIAR GAK KETUTUP HEADER */
+    scroll-margin-top: 110px !important; 
+}
+
+.profile-img { 
+    /* Gunakan min-width & min-height agar tidak bisa dipaksa mengecil oleh sidebar */
+    width: 330px !important;  
+    height: 330px !important; 
+    min-width: 330px; 
+    min-height: 330px;
+
+    border-radius: 50%; 
+    border: 3px solid var(--main-accent); 
+    
+    /* Biar foto tetap ganteng (kepala naik sedikit) */
+    object-fit: cover; 
+    object-position: center 15%; 
+    
+    margin-bottom: 20px;
+    box-shadow: 0 0 25px rgba(0, 255, 65, 0.3);
+    
+    /* Tambahan agar pas di tengah */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+
+/* Container bar (Latar belakang gelap) */
+.progress {
+    background-color: #161b22; /* Warna dasar bar yang kosong */
+    border-radius: 10px;
+    height: 10px; /* Harus ada tinggi biar kelihatan */
+    width: 100%;
+    margin-top: 5px;
+    border: 1px solid var(--border-color);
+    overflow: hidden; /* Biar isinya gak keluar jalur */
+}
+
+/* Isi bar (Warna hijau/biru yang bergerak sesuai %) */
+.progress-bar {
+    height: 100%;
+    background-color: var(--main-accent); /* Warna default hijau */
+    box-shadow: 0 0 10px var(--main-accent); /* Efek glow biar hacker banget */
+    transition: width 1s ease-in-out; 
+}
+
+.nav-panel, .system-panel {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.nav-panel h3, .system-panel h3 {
+    white-space: nowrap; 
+    color: var(--secondary-accent);
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+
+
+/* --- 6. SIDEBAR UTILS --- */
+.side-nav { list-style: none; }
+.side-nav li { margin-bottom: 12px; }
+.side-nav a { 
+    color: var(--text-color); 
+    text-decoration: none; 
+    font-size: 0.85rem; 
+    transition: 0.2s; 
+    display: block; 
+}
+
+.sidebar-left, 
+.sidebar-right {
+    flex: 0 0 280px;
+    position: sticky;
+    top: 90px;
+    height: calc(100vh - 120px);
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding-right: 10px; /* 🔥 INI SOLUSI UTAMA */
+}
+
+#sidebar-log {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: var(--main-accent);
+    min-height: 60px;
+}
+
+.status-dot { color: #27c93f; animation: blink 1.5s infinite; }
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* --- 7. UTILS & CURSOR --- */
+.custom-cursor { 
+    width: 6px;           /* Ukuran titik kecil */
+    height: 6px; 
+    background-color: var(--main-accent); /* Full warna hijau */
+    border: none;         /* Hapus border lingkaran lama */
+    border-radius: 50%; 
+    position: fixed; 
+    pointer-events: none; 
+    z-index: 9999; 
+    transition: transform 0.1s ease;
+    /* Efek glow biar titiknya tajam dan berasa 'hacker' */
+    box-shadow: 0 0 8px var(--main-accent), 0 0 12px rgba(0, 255, 65, 0.5); 
+}
+
+@media (pointer: fine) { .custom-cursor { display: block; } }
+
+/* --- 8. RESPONSIVE --- */
+@media (max-width: 1100px) {
+    .sidebar-right { display: none; }
+}
+
+@media (max-width: 850px) {
+    .app-container { flex-direction: column; margin-top: 80px; }
+    .sidebar-left { 
+        position: relative !important; 
+        top: 0 !important; 
+        height: auto !important; 
+        width: 100% !important;
+        flex: 1 1 auto !important;
+    }
+    .nav-links { display: none; }
+}
+
+/* --- FIX FINAL: NAVIGATION MENU INTERACTION --- */
+.nav-panel nav {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Ubah dari center ke flex-start agar bisa geser */
+    padding-left: 20px;      /* Beri ruang di kiri agar sejajar rapi */
+}
+
+.nav-panel nav a {
+    display: block !important; 
+    width: 100%;
+    color: var(--text-color) !important;
+    text-decoration: none !important;
+    margin-bottom: 12px !important;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; /* Efek pegas */
+    text-align: left;        /* WAJIB LEFT agar transform translateX bisa jalan */
+    cursor: pointer;
+}
+
+/* Efek saat kursor di atas menu */
+.nav-panel nav a:hover {
+    color: var(--main-accent) !important; 
+    transform: translateX(15px) !important; /* Dorong 15px ke kanan */
+    text-shadow: 0 0 12px var(--main-accent) !important;
+    letter-spacing: 1px; /* Efek meregang sedikit biar keren */
+}

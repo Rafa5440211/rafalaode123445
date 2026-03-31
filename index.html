@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rafa | Terminal_Dev.exe</title>
+    <style>
+        /* --- 1. CONFIGURATION & VARIABLES --- */
+        :root {
+            --bg-color: #0d1117; 
+            --text-color: #c9d1d9;
+            --main-accent: #00ff41; 
+            --secondary-accent: #58a6ff; 
+            --border-color: #30363d;
+            --card-bg: #161b22;
+            --font-main: 'Courier New', Courier, monospace;
+        }
+
+        /* --- 2. RESET & BASE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            font-family: var(--font-main); 
+            overflow-x: hidden;
+            cursor: none; 
+        }
+
+        /* --- 3. HEADER (MODIFIED) --- */
+header { 
+    position: fixed; 
+    top: 0; width: 100%; 
+    background: rgba(13, 17, 23, 0.95); 
+    border-bottom: 1px solid var(--border-color); 
+    z-index: 1000; 
+    /* UBAH DI SINI: dari 15px 30px menjadi 15px 20px */
+    padding: 15px 475px; 
+    backdrop-filter: blur(5px);
+}
+
+.navbar { 
+    display: flex; 
+    justify-content: flex-start; /* Ubah agar tidak dipaksa ke ujung */
+    align-items: center; 
+    max-width: 1400px; 
+    margin: auto; 
+    padding: 0 20px; /* Samakan dengan padding .app-container kamu */
+}
+
+.logo { 
+    color: var(--main-accent); 
+    font-weight: bold; 
+    letter-spacing: 1px; 
+    
+    /* KUNCI POSISI DI SINI */
+    width: 280px;      /* Samakan persis dengan flex-basis sidebar-left kamu */
+    text-align: center; /* Paksa teks ke tengah area 280px tersebut */
+    flex-shrink: 0;    /* Jangan biarkan logo mengecil */
+}
+        .nav-links { list-style: none; display: flex; gap: 20px; }
+        .nav-links a { text-decoration: none; color: var(--text-color); font-size: 0.75rem; transition: 0.3s; }
+        .nav-links a:hover { color: var(--main-accent); text-shadow: 0 0 5px var(--main-accent); }
+
+        /* --- 4. LAYOUT (FIX SIMETRIS) --- */
+        .app-container { 
+            display: flex; 
+            max-width: 1400px; 
+            margin: 90px auto 20px; 
+            /* Jarak antar kolom (Gunakan angka yang sama untuk kiri & kanan) */
+            gap: 30px; 
+            padding: 0 20px; 
+            justify-content: center;
+        }
+
+        .sidebar-left, .sidebar-right { 
+            /* Kita kunci lebar sidebar agar identik (Fixed Width) */
+            flex: 0 0 280px; 
+            position: sticky; 
+            top: 90px; 
+            height: calc(100vh - 120px); 
+        }
+
+        .sidebar-left, 
+.sidebar-right {
+    flex: 0 0 280px;
+    position: sticky;
+    top: 90px;
+    height: calc(100vh - 120px);
+
+    /* INI YANG PENTING */
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+        .main-content { 
+            /* Biar bagian tengah mengambil sisa ruang secara otomatis */
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 25px; 
+            min-width: 0; /* Mencegah overflow pada konten tengah */
+        }
+
+        /* Biar isi sidebar tetap rapi */
+        .sidebar-content { 
+            background: none; 
+            border: none; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px;
+        }
+
+        /* --- 5. COMPONENTS --- */
+        section { 
+            padding: 30px; 
+            border: 1px solid var(--border-color); 
+            background: var(--card-bg); 
+            border-radius: 8px; 
+            opacity: 0; 
+            transform: translateY(20px); 
+            transition: 0.8s all ease; 
+        }
+        section.visible { opacity: 1; transform: translateY(0); }
+        
+        h2 { color: var(--main-accent); margin-bottom: 20px; font-size: 1.4rem;  }
+        h2::before { content: "# "; }
+
+        .card { background: #0d1117; border: 1px solid var(--border-color); padding: 15px; margin-bottom: 12px; border-radius: 4px; transition: 0.3s; }
+        .card:hover { border-color: var(--secondary-accent); transform: translateX(5px); }
+
+        .profile-img { width: 225px; height: 225px; border-radius: 50%; border: 3px solid var(--main-accent); margin-bottom: 15px; object-fit: cover; box-shadow: 0 0 15px rgba(0,255,65,0.1); }
+        
+        .progress { background: #21262d; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 8px; }
+        .progress-bar { height: 100%; background: var(--main-accent); width: 0; transition: 1.5s cubic-bezier(0.1, 0.5, 0.5, 1); }
+
+        .side-nav { list-style: none; margin-top: 15px; }
+        
+        
+ .side-nav a {
+    color: var(--text-color); /* Warna awal (putih/abu) */
+    text-decoration: none;
+    transition: 0.3s; /* Biar perubahan warnanya smooth */
+}
+
+/* Bagian yang kamu minta: saat disentuh (hover) */
+.side-nav a:hover {
+    color: var(--main-accent) !important; /* Berubah jadi hijau */
+    text-shadow: 0 0 8px var(--main-accent); /* Efek glow terminal */
+    padding-left: 8px; 
+}
+
+        .status-dot { color: #27c93f; animation: blink 1.5s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        
+        /* Sembunyikan kursor di seluruh area web */
+html, body, a, button, input, .nav-panel nav a {
+    cursor: none !important;
+}
+
+/* Pastikan kursor custom kamu tetap muncul */
+.custom-cursor { 
+    width: 8px; /* Sedikit lebih besar agar nyaman diklik */
+    height: 8px; 
+    background-color: var(--main-accent);
+    border-radius: 50%; 
+    position: fixed; 
+    pointer-events: none; /* WAJIB: Agar klik tembus ke elemen di bawahnya */
+    z-index: 9999; 
+    box-shadow: 0 0 10px var(--main-accent);
+    
+    /* Titik tengah kursor sebagai pusat gravitasi */
+    transform: translate(-50%, -50%); 
+    transition: transform 0.05s linear;
+}
+
+        .sidebar-content::-webkit-scrollbar { width: 4px; }
+        .sidebar-content::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+
+        @media (max-width: 1100px) { .sidebar-right { display: none; } }
+        @media (max-width: 850px) { 
+            .sidebar-left { display: none; } 
+            .main-content { flex: 1; } 
+            body { cursor: auto; } .custom-cursor { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="custom-cursor"></div>
+
+    <header>
+    <nav class="navbar">
+        <div class="logo">RAFA_SYSTEM.exe</div>
+        </nav>
+</header>
+
+    <div class="app-container">
+        <aside class="sidebar-left" style="background: none !important; border: none !important;">
+            <div class="sidebar-content" style="background: none !important; border: none !important; display: flex; flex-direction: column; gap: 20px;">
+                
+                <div class="header-panel" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px; border-radius: 8px;">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 10px; color: var(--secondary-accent); text-align: center;">SYSTEM_MONITOR</h3>
+                    <div style="font-size: 0.95rem; line-height: 1.6; width: fit-content; margin: 0 auto;">
+                        <p>> USER: Rafa_Astiani</p>
+                        <p>> STATUS: <span class="status-dot">●</span> ONLINE</p>
+                    </div>
+                </div>
+
+                <div class="nav-panel" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px; border-radius: 8px;">
+                    <h3 style="font-size: 1.3rem; color: var(--secondary-accent); margin-bottom: 20px; text-align: center;">
+                        NAVIGATION_MENU
+                    </h3>
+                    
+                    <nav class="side-nav" style="display: flex; flex-direction: column; align-items: center; padding-left: 0;">
+                        <a href="#home">> Root_Home</a>
+                        <a href="#about">> About_System</a>
+                        <a href="#story">> System_Origin</a>
+                        <a href="#personal">> Bio_Decrypt</a>
+                        <a href="#academic">> Academic_Log</a>
+                        <a href="#skills">> Tech_Stack</a>
+                        <a href="#wireframe">> UI_Schematics</a>
+                    </nav>
+                </div>
+
+                <div class="nav-panel" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px; border-radius: 8px;">
+                    <h3 style="font-size: 1.3rem; color: var(--secondary-accent); margin-bottom: 12px; text-align: center;">TERMINAL_QUOTE</h3>
+                    
+                    <div style="font-size: 0.85rem; line-height: 1.6;">
+                        <div style="margin-bottom: 15px; text-align: center;">
+                            <span style="color: var(--main-accent); font-weight: bold; display: block; margin-bottom: 5px;">SYSTEM:</span>
+                            <p style="font-style: italic; color: #8b949e;">"Code is poetry in execution."</p>
+                        </div>
+                        <div style="margin-bottom: 15px; text-align: center;">
+                            <span style="color: var(--main-accent); font-weight: bold; display: block; margin-bottom: 5px;">WARNING:</span>
+                            <p style="font-style: italic; color: #8b949e;">"Stay consistent or stay stagnant."</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <main class="main-content">
+    <section id="home" class="visible" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <img src="rafa.jpeg" alt="Rafa" class="profile-img">
+        <h1 style="font-size: 2rem; margin-bottom: 10px; letter-spacing: 2px;">LA ODE RAFAEL ASTIANI</h1>
+        <p class="typewriter" style="color: var(--main-accent); font-weight: bold;">C:\> Mahasiswa SI @ UIB | Web Dev | Programmer</p>
+    </section>
+
+    <section id="about">
+    <h2>About_System</h2>
+    <div class="card">
+        <p>> Hi, perkenalkan nama saya La Ode Rafael Astiani, biasa dipanggil Rafa. Saya adalah mahasiswa Sistem Informasi</strong> di Universitas Internasional Batam yang memiliki minat besar dalam pengembangan web, manajemen database, dan keamanan sistem.</p>
+        
+        <p style="margin-top: 15px;">> Saat ini, saya sedang fokus mengasah kemampuan teknis saya untuk membangun platform digital yang aman dan fungsional, sambil terus mengeksplorasi teknologi baru di dunia IT.</p>
+    </div>
+</section>
+
+    <section id="story">
+    <h2>System_Origin</h2>
+    <div class="card" style="line-height: 1.8; text-align: justify;  padding-left: 20px;">
+        
+        <p style="margin-bottom: 40px;"> 
+            <span style="color: var(--main-accent);">[ LOG_01 ]</span> Rasa penasaran pada dunia digital membawa saya ke Sistem Informasi UIB, berawal dari ketertarikan pada bagaimana kode bisa membentuk sistem dan tampilan interaktif, hingga akhirnya saya fokus memahami dunia teknologi secara lebih dalam.
+        </p>
+
+        <p style="margin-bottom: 40px;"> 
+            <span style="color: var(--main-accent);">[ LOG_02 ]</span> Bagi saya, teknologi adalah seni memecahkan masalah secara efisien. Saya selalu berusaha membangun sistem yang tidak hanya fungsional, tetapi juga aman, dan melihat setiap error sebagai bagian penting dari proses belajar dalam dunia coding.
+        </p>
+
+        <p> 
+            <span style="color: var(--main-accent);">[ LOG_03 ]</span> Target tahun ini adalah merakit PC untuk mendukung pekerjaan berat seperti coding dan multitasking, sambil terus menabung dan meriset komponen terbaik agar workflow pengembangan menjadi lebih lancar tanpa hambatan.
+        </p>
+
+    </div>
+</section>
+
+    <section id="personal">
+    <h2>Bio_Decrypt</h2>
+    <div class="card">
+        <div style="display: grid; grid-template-columns: 160px 1fr; gap: 12px; font-size: 0.95rem; line-height: 1.8;">
+            
+            <p style="color: var(--secondary-accent); font-weight: bold;">[ FULL_NAME ]</p>
+            <p>: La Ode Rafael Astiani</p>
+            
+            <p style="color: var(--secondary-accent); font-weight: bold;">[ NICKNAME  ]</p>
+            <p>: Rafa</p>
+
+            <p style="color: var(--secondary-accent); font-weight: bold;">[ AGE       ]</p>
+            <p>: 19 Years Old</p>
+
+            <p style="color: var(--secondary-accent); font-weight: bold;">[ RELIGION  ]</p>
+            <p>: Islam</p>
+
+            <p style="color: var(--secondary-accent); font-weight: bold;">[ RESIDENCE ]</p>
+            <p>: Perumahan Tiban Anggrek, Batam</p>
+
+            <hr style="grid-column: span 2; border: 0; border-top: 1px solid var(--border-color); margin: 5px 0;">
+
+<p style="color: var(--secondary-accent); font-weight: bold;">[ STUDENT_ID]</p>
+            <p>: 2531183</p>
+
+            <p style="color: var(--secondary-accent); font-weight: bold;">[ MAJOR     ]</p>
+            <p>: Sistem Informasi</p>
+
+            <p style="color: var(--secondary-accent); font-weight: bold;">[ FACULTY   ]</p>
+            <p>: Ilmu Komputer</p>
+
+            <p style="color: var(--secondary-accent); font-weight: bold;">[ UNIVERSITY]</p>
+            <p>: Universitas Internasional Batam</p>
+
+        </div>
+    </div>
+</section>
+
+    <section id="education">
+    <h2>Academic_Log</h2>
+    <div class="card">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-family: 'Courier New', monospace; font-size: 0.85rem; border: 1px solid var(--border-color);">
+                <thead>
+                    <tr style="background-color: rgba(0, 255, 65, 0.1);">
+                        <th style="padding: 12px; border: 1px solid var(--border-color); color: var(--main-accent); text-align: left;">[ PERIOD ]</th>
+                        <th style="padding: 12px; border: 1px solid var(--border-color); color: var(--main-accent); text-align: left;">[ INSTITUTION ]</th>
+                        <th style="padding: 12px; border: 1px solid var(--border-color); color: var(--main-accent); text-align: left;">[ LEVEL ]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">2025 - Present</td>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">Universitas Internasional Batam</td>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">Bachelor (S1)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">2022 - 2025</td>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">Sekolah Harapan Utama</td>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">High School (SMA)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">2020 - 2022</td>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">Sekolah Harapan Utama</td>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">Junior High (SMP)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">2010 - 2019</td>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">Sekolah Harapan Utama</td>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">Elementary (SD)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">Until 2010</td>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">Sekolah Harapan Utama</td>
+                        <td style="padding: 10px; border: 1px solid var(--border-color);">Kindergarten (TK)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+    <section id="skills">
+    <h2>Tech_Stack</h2>
+    <div class="card">
+        <p style="color: var(--main-accent); margin-bottom: 10px; font-weight: bold;">[ HARD_SKILLS ]</p>
+        
+        <p>HTML <span style="float:right">40%</span></p>
+<div class="progress">
+    <div class="progress-bar" data-width="40%" style="background: var(--main-accent); box-shadow: 0 0 10px var(--main-accent);"></div>
+</div>
+
+<p style="margin-top:10px">CSS <span style="float:right">35%</span></p>
+<div class="progress">
+    <div class="progress-bar" data-width="35%" style="background: var(--main-accent); box-shadow: 0 0 10px var(--main-accent);"></div>
+</div>
+
+<p style="margin-top:10px">JavaScript <span style="float:right">30%</span></p>
+<div class="progress">
+    <div class="progress-bar" data-width="30%" style="background: var(--main-accent); box-shadow: 0 0 10px var(--main-accent);"></div>
+</div>
+
+<hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 20px 0;">
+
+<p style="color: var(--secondary-accent); margin-bottom: 10px; font-weight: bold;">[ SOFT_SKILLS ]</p>
+
+<p>English <span style="float:right">70%</span></p>
+<div class="progress">
+    <div class="progress-bar" data-width="70%" style="background: var(--secondary-accent); box-shadow: 0 0 10px var(--secondary-accent);"></div>
+</div>
+
+<p style="margin-top:10px">Public Speaking <span style="float:right">55%</span></p>
+<div class="progress">
+    <div class="progress-bar" data-width="55%" style="background: var(--secondary-accent); box-shadow: 0 0 10px var(--secondary-accent);"></div>
+</div>
+</section>
+
+    <section id="wireframe">
+    <h2>UI_Schematics</h2>
+
+    <div class="card" style="text-align: center; padding: 30px 15px;">
+    <p style="margin-bottom: 20px; color: var(--secondary-accent); font-size: 0.9rem; letter-spacing: 1px;">
+        [ PROJECT_WIREFRAME_V1.0 ]
+    </p>
+
+    <button id="open-wireframe" class="wireframe-btn" onclick="window.open('URL_FIGMA_KAMU', '_blank')" style="
+    background: #f0f0f0; 
+    color: #0d1117; 
+    border: none;
+    padding: 10px 25px;
+    font-family: var(--font-main);
+    font-weight: bold;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 4px 4px 0px var(--main-accent);
+">
+    > View_Wireframe_File
+</button>
+
+    <p style="margin-top: 20px; font-size: 0.65rem; color: #444; font-style: italic;">
+        // System_Ready: Click to execute access //
+    </p>
+</div>
+</section>
+</main>
+
+        <aside class="sidebar-right">
+            <div class="sidebar-content" style="background: none; border: none; padding: 0;">
+                
+                <div class="system-panel" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                    <h3 style="font-size: 1.3rem; color: var(--secondary-accent); margin-bottom: 12px; letter-spacing: 1px; text-align: center; white-space: nowrap;">
+                        SYSTEM_DIAGNOSTIC
+                    </h3>
+
+                    <div style="font-size: 0.95rem; color: #8b949e; line-height: 1.8; margin-bottom: 15px;">
+                        <p>> OS: <span id="os-name" style="color: var(--main-accent);">Detecting...</span></p>
+                        <p>> BROWSER: <span id="browser-info" style="color: var(--main-accent);">Detecting...</span></p>
+                        <p>> DISPLAY: <span id="screen-res" style="color: var(--secondary-accent);">Detecting...</span></p>
+                        <p>> ARCH: <span id="sys-arch" style="color: var(--secondary-accent);">Detecting...</span></p>
+                        <p>> LATENCY: <span id="ping-val" style="color: var(--main-accent);">0ms</span></p>
+<p>> SIGNAL: <span id="wifi-info" style="color: var(--secondary-accent);">Detecting...</span></p>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <p style="font-size: 0.95rem; color: #8b949e;">CPU_PROCESSOR_LOAD</p>
+                        <div class="progress" style="height: 4px; margin-bottom: 8px;">
+                            <div id="cpu-bar" class="progress-bar" style="background: var(--main-accent); width: 0%;"></div>
+                        </div>
+                        
+                        <p style="font-size: 0.95rem; color: #8b949e;">BATT_LEVEL</p>
+                        <div class="progress" style="height: 4px;"><div id="batt-bar" class="progress-bar"></div></div>
+                        <p id="batt-status" style="font-size: 0.55rem; color: var(--main-accent); margin-top: 4px; text-align: right;">SYNCING...</p>
+                    </div>
+
+                    <div id="sidebar-log" style="font-size: 0.75rem; color: var(--main-accent); height: 50px; overflow: hidden; opacity: 0.8; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 2px; margin-bottom: 15px;">
+                        <p>> System_Ready</p>
+                    </div>
+
+                    <div style="text-align: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                        <p id="side-clock" style="font-size: 1.2rem; color: var(--main-accent); font-weight: bold; font-family: monospace;">00:00:00</p>
+                        <p id="side-date" style="font-size: 0.6rem; color: #8b949e;">FRI, MAR 27, 2026</p>
+                    </div>
+                </div>
+
+                <div class="nav-panel" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px; border-radius: 8px;">
+    <h3 style="font-size: 1.3rem; color: var(--secondary-accent); margin-bottom: 20px; text-align: center;">
+        [ SOCIAL_LINKS ]
+    </h3>
+    
+    <nav class="side-nav" style="display: flex; flex-direction: column; align-items: center; padding-left: 0;">
+        <a href="https://github.com/Rafa5440211" target="_blank">> GitHub</a>
+        <a href="https://wa.me/0895603701251" target="_blank">> WhatsApp</a>
+        <a href="https://www.instagram.com/rafaaa7831/" target="_blank">> Instagram</a>
+    </nav>
+</div>
+
+            </div>
+        </aside>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+    
+    // 1. TYPEWRITER EFFECT
+    const tw = document.querySelector('.typewriter');
+    if (tw) {
+        const txt = tw.innerText; tw.innerText = ''; let idx = 0;
+        function type() { if(idx < txt.length) { tw.innerHTML += txt.charAt(idx); idx++; setTimeout(type, 50); } }
+        setTimeout(type, 500);
+    }
+
+    // 2. CUSTOM CURSOR
+    const cur = document.querySelector('.custom-cursor');
+    if (cur) {
+        document.addEventListener('mousemove', (e) => {
+            cur.style.left = e.clientX - 10 + 'px';
+            cur.style.top = e.clientY - 10 + 'px';
+        });
+    }
+
+    // 3. SCROLL REVEAL & SKILL BARS
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                const bars = entry.target.querySelectorAll('.progress-bar');
+                bars.forEach(bar => { bar.style.width = bar.getAttribute('data-width'); });
+            }
+        });
+    }, { threshold: 0.2 });
+    document.querySelectorAll('section').forEach(s => observer.observe(s));
+
+    // 4. SYSTEM MONITOR (JAM, TANGGAL, & LOG)
+    function updateSystem() {
+        const now = new Date();
+        const clockEl = document.getElementById('side-clock');
+        if(clockEl) clockEl.innerText = now.toLocaleTimeString('en-US', { hour12: false });
+
+        const dateEl = document.getElementById('side-date');
+        if(dateEl) {
+            const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+            dateEl.innerText = now.toLocaleDateString('en-US', options).toUpperCase();
+        }
+
+        const logBox = document.getElementById('sidebar-log');
+        if(logBox && now.getSeconds() % 4 === 0) {
+            const msgs = ["> Pinging...", "> Recv_OK", "> Encrypt_On", "> Auth_Pass", "> Sys_Watch"];
+            const p = document.createElement('p');
+            p.innerText = msgs[Math.floor(Math.random() * msgs.length)];
+            logBox.appendChild(p);
+            if (logBox.childNodes.length > 3) logBox.removeChild(logBox.firstChild);
+        }
+    }
+    setInterval(updateSystem, 1000);
+    updateSystem();
+
+    // 5. DETEKSI OS, BROWSER, RESOLUSI, & ARCH
+    function initSystemDetails() {
+        const osEl = document.getElementById('os-name');
+        if (osEl) {
+            let p = navigator.platform;
+            osEl.innerText = p.includes('Win') ? 'Windows_OS' : p.includes('Mac') ? 'macOS_Sys' : 'Linux_Kernel';
+        }
+
+        const browserEl = document.getElementById('browser-info');
+        if (browserEl) {
+            const agent = navigator.userAgent;
+            browserEl.innerText = agent.includes("Chrome") ? "Chrome_Engine" : agent.includes("Firefox") ? "Firefox_Quantum" : "Webkit_Browser";
+        }
+
+        const resEl = document.getElementById('screen-res');
+        if (resEl) {
+            resEl.innerText = `${window.screen.width}x${window.screen.height}_PX`;
+        }
+
+        const archEl = document.getElementById('sys-arch');
+        if (archEl) {
+            const is64 = navigator.userAgent.includes("Win64") || navigator.userAgent.includes("x64") || navigator.userAgent.includes("wow64");
+            archEl.innerText = is64 ? "X64_BASED" : "X86_BASED";
+        }
+    }
+
+    // 6. DETEKSI SIGNAL & NETWORK (TAMBAHAN FIX)
+    function initNetworkInfo() {
+        const wifiEl = document.getElementById('wifi-info');
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        
+        if (wifiEl) {
+            if (conn) {
+                const type = conn.effectiveType || "N/A";
+                const speed = conn.downlink ? conn.downlink + "Mbps" : "---";
+                wifiEl.innerText = `${type.toUpperCase()} | ${speed}`;
+            } else {
+                // Fallback jika browser desktop tidak support Network API
+                wifiEl.innerText = "ETHERNET_ACTIVE";
+            }
+        }
+    }
+
+    // 7. BATTERY API
+    function initBattery() {
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(battery => {
+                const update = () => {
+                    const lv = Math.round(battery.level * 100);
+                    const bar = document.getElementById('batt-bar');
+                    const status = document.getElementById('batt-status');
+                    if(bar) {
+                        bar.style.width = lv + "%";
+                        bar.style.background = lv <= 20 ? "#ff5f56" : "#00ff41";
+                    }
+                    if(status) status.innerText = `${lv}% | ${battery.charging ? "CHARGING" : "DISCHARGING"}`;
+                };
+                update();
+                battery.onchargingchange = update;
+                battery.onlevelchange = update;
+            });
+        }
+    }
+
+    // 8. HARDWARE & LATENCY SIMULATOR
+    function initHardwareSim() {
+        const cpuBar = document.getElementById('cpu-bar');
+        const pingVal = document.getElementById('ping-val');
+
+        setInterval(() => {
+            if (cpuBar) {
+                const cpuLoad = Math.floor(Math.random() * (85 - 30 + 1)) + 30;
+                cpuBar.style.width = cpuLoad + "%";
+                cpuBar.style.background = cpuLoad > 80 ? "#ff5f56" : "var(--main-accent)";
+            }
+            if (pingVal) {
+                const ping = Math.floor(Math.random() * (45 - 12 + 1)) + 12;
+                pingVal.innerText = ping + "ms";
+                pingVal.style.color = ping > 35 ? "#ff5f56" : "var(--main-accent)";
+            }
+        }, 2000);
+    }
+
+    // --- EKSEKUSI SEMUA FUNGSI ---
+    initSystemDetails(); 
+    initNetworkInfo(); // <-- Tadi ini yang hilang
+    initBattery();       
+    initHardwareSim();   
+    });
+    </script>
+</body>
+</html>
